@@ -88,6 +88,10 @@ public class PlayerController : MonoBehaviour
         }
 
         CheckGround();
+    }
+
+    private void LateUpdate()
+    {
         MouseLook();
         Zoom();
     }
