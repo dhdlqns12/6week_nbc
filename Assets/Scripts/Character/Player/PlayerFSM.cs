@@ -119,7 +119,9 @@ public class PlayerFSM : MonoBehaviour
                 CurState == PlayerState.Zoom &&
                 playerController.IsGrounded && playerController.Player.curSp >= jumpSpCost)
             {
+                Debug.Log("점프");
                 ChangeState(PlayerState.Jump);
+                Debug.Log("점프 스테이트 전환 완로");
             }
         }
         if (CurState == PlayerState.Jump && !playerController.IsGrounded)
