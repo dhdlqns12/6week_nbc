@@ -1,0 +1,17 @@
+2025-11-07 오늘의 고민? 문제?
+
+상속을 interrface로 시킬것인가 그냥 상속시킬것인가(일반 class,abstract class)
+
+Zoom은 상태인가? 플래그로 조절하는게 나은가?
+에대한 고민은 만약 zoom상태에서 특정 제약(zoom상태에서 달리거나 점프하면 zoom풀림,이동속도 느려짐 등)이 있으면 상태로 이동,달리기 중 줌이 가능하다면 플래그로 조절
+
+음 여전히 Character를 interface로 상속받을 것인가? 그냥 클래스로 상속받을것인가?
+
+interface로 상속받으면 다형성 구축 편함...
+->플레이어,몬스터 모두 maxhp,curhp,이름,죽었는지 여부,TakeDamage,Die,Init 모두 수행하기 때문...
+
+예시로 프로젝타일 스크립트가 있으면 interface받아와서 TakeDamage해주면 몬스터 플레이어 구분없이 TakeDamage실행...
+이런 방식이 나을까..?
+
+그냥 Character클래스안에 Die,TakeDamage,Init을 구현해서 상속시킬 것인가...
+virtual방식이라 interface랑 큰차이 없나?

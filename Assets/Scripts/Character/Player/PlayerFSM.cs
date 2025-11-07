@@ -94,7 +94,6 @@ public class PlayerFSM : MonoBehaviour
     #region 이벤트 핸들러
     private void HandleJumpRequest()
     {
-        Debug.Log("핸들러 진입");
         if (playerController.IsGrounded == true)
         {
             Debug.Log(CurState);
@@ -119,9 +118,7 @@ public class PlayerFSM : MonoBehaviour
                 CurState == PlayerState.Zoom &&
                 playerController.IsGrounded && playerController.Player.curSp >= jumpSpCost)
             {
-                Debug.Log("점프");
                 ChangeState(PlayerState.Jump);
-                Debug.Log("점프 스테이트 전환 완로");
             }
         }
         if (CurState == PlayerState.Jump && !playerController.IsGrounded)
