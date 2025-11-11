@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Player : Character
 {
     [Header("플레이어 스탯")]
-    [SerializeField] private float maxSp = 100f;
+    public float maxSp = 100f;
 
     public float curSp;
 
@@ -28,7 +26,6 @@ public class Player : Character
         curSp = Mathf.Min(curSp + amount, maxSp);
         EventBus.OnSpChanged?.Invoke();
     }
-
 
     public void Respawn(Vector3 position)
     {

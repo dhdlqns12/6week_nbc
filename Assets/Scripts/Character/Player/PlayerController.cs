@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -18,19 +15,6 @@ public class PlayerController : MonoBehaviour
     public float runSpeed;
     public float zoomSpeedMultiplier;
     public float jumpForce;
-
-    [Header("벽 타기")]
-    public float wallRunSpeed;
-    public float wallRayDistance;
-    public LayerMask wallLayer;
-    private RaycastHit wallHit;
-    private bool isWallRight;
-    private bool isWallLeft;
-
-
-    [Header("매달리기")]
-    public float hangRayDistance;
-    private Vector3 hangPosition;
 
     [Header("카메라 설정")]
     [SerializeField] private Camera playerCamera;
@@ -58,7 +42,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        if(playerCamera!=null)
+        if (playerCamera != null)
         {
             normalFov = playerCamera.fieldOfView;
         }
@@ -82,7 +66,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if(player.isDead)
+        if (player.isDead)
         {
             return;
         }
@@ -178,7 +162,7 @@ public class PlayerController : MonoBehaviour
     {
         if (player.isDead || !context.performed)
         {
-            return;               
+            return;
         }
 
         EventBus.OnPlayerAttackRequested?.Invoke();
@@ -223,45 +207,33 @@ public class PlayerController : MonoBehaviour
     #region 이동제어
     public void Move(float speed)
     {
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        Vector3 targetPosition = rb.position + move * speed * Time.fixedDeltaTime;
-        rb.MovePosition(targetPosition);
+        Vector3 dir = transform.forward * moveInput.y + transform.right * moveInput.x;
+
+        if (!HasMoveInput())
+        {
+            StopMovement();
+        }
+
+        dir = dir.normalized * speed;
+        dir.y = rb.velocity.y;
+
+        rb.velocity = dir;
     }
 
     public void Jump()
     {
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
-    public void WallRun()
-    {
-        Vector3 wallNormal = wallHit.normal;
-        Vector3 wallForward = Vector3.Cross(wallNormal, transform.up);
-
-        if ((transform.forward - wallForward).magnitude > (transform.forward - -wallForward).magnitude)
-        {
-            wallForward = -wallForward;
-        }
-
-        rb.velocity = new Vector3(wallForward.x * wallRunSpeed, 0, wallForward.z * wallRunSpeed);
-        rb.AddForce(-wallNormal * 100, ForceMode.Force);
-    }
-
-    public void WallJump()
-    {
-        Vector3 wallJumpDirection = wallHit.normal + Vector3.up;
-        rb.velocity = wallJumpDirection.normalized * jumpForce;
-    }
-
-    public void ClimbUp()
-    {
-        rb.velocity = Vector3.zero;
-        transform.position = hangPosition + Vector3.up * 2f + transform.forward * 0.5f;
-    }
 
     public void StopMovement()
     {
-        rb.velocity = Vector3.zero;
+        Vector3 velocity = rb.velocity;
+        velocity.x = 0f;
+        velocity.z = 0f;
+        rb.velocity = velocity;
     }
 
     public void SetGravity(bool enabled)
@@ -282,32 +254,8 @@ public class PlayerController : MonoBehaviour
         {
             IsGrounded = Physics.CheckSphere(groundCheck.position, groundRayDistance, groundLayer);
         }
-        else
-        {
-            IsGrounded = Physics.Raycast(transform.position, Vector3.down, 1f, groundLayer);
-        }
     }
 
-    private void CheckWall()
-    {
-        isWallRight = Physics.Raycast(transform.position, transform.right, out wallHit, wallRayDistance, wallLayer);
-        isWallLeft = Physics.Raycast(transform.position, -transform.right, out wallHit, wallRayDistance, wallLayer);
-    }
-
-    public bool CheckHang()
-    {
-        Vector3 origin = transform.position + Vector3.up * 1.5f + transform.forward * 0.3f;
-
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, hangRayDistance, wallLayer))
-        {
-            hangPosition = hit.point;
-            return true;
-        }
-        return false;
-    }
-
-    public bool CanWallRun() => !IsGrounded && (isWallRight || isWallLeft) && HasMoveInput();
-    public bool IsOnWall() => isWallRight || isWallLeft;
     public bool HasMoveInput() => moveInput != Vector2.zero;
     public bool HasDownInput() => moveInput.y < -0.5f;
     #endregion
@@ -347,12 +295,9 @@ public class PlayerController : MonoBehaviour
         }
 
         Gizmos.color = Color.blue;
-        Gizmos.DrawRay(transform.position, transform.right * wallRayDistance);
-        Gizmos.DrawRay(transform.position, -transform.right * wallRayDistance);
 
         Vector3 hangOrigin = transform.position + Vector3.up * 1.5f + transform.forward * 0.3f;
         Gizmos.color = Color.yellow;
-        Gizmos.DrawRay(hangOrigin, Vector3.down * hangRayDistance);
     }
     #endregion
 }

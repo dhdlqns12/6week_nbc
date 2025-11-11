@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem.XR;
 
 public class PlayerFSM : MonoBehaviour
 {
@@ -9,8 +8,6 @@ public class PlayerFSM : MonoBehaviour
         Move,
         Run,
         Jump,
-        WallRun,
-        Hang,
         Zoom,
         Attack,
         Interact,
@@ -34,9 +31,19 @@ public class PlayerFSM : MonoBehaviour
     [SerializeField] private float wallRunSpCost;
     [SerializeField] private float jumpSpCost;
 
+    [Header("애니메이터")]
+    private Animator animator;
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
+    private static readonly int JumpHash = Animator.StringToHash("Jump");
+
+    [Header("스태미나 회복")]
+    [SerializeField] private float spRecoveryRate;
+
     #region 유니티 callback메서드
     private void Awake()
     {
+        animator = GetComponent<Animator>();
         CurState = PlayerState.Idle;
     }
 
@@ -58,6 +65,8 @@ public class PlayerFSM : MonoBehaviour
         }
 
         UpdateState();
+        UpdateAnimator();
+        HandleSpRecovery();
     }
 
     private void FixedUpdate()
@@ -97,20 +106,6 @@ public class PlayerFSM : MonoBehaviour
         if (playerController.IsGrounded == true)
         {
             Debug.Log(CurState);
-            Debug.Log(playerController.IsGrounded);
-            if (CurState == PlayerState.Hang)
-            {
-                playerController.ClimbUp();
-                ChangeState(PlayerState.Idle);
-                return;
-            }
-
-            if (CurState == PlayerState.WallRun)
-            {
-                playerController.WallJump();
-                ChangeState(PlayerState.Jump);
-                return;
-            }
 
             if (CurState == PlayerState.Idle ||
                 CurState == PlayerState.Move ||
@@ -121,21 +116,11 @@ public class PlayerFSM : MonoBehaviour
                 ChangeState(PlayerState.Jump);
             }
         }
-        if (CurState == PlayerState.Jump && !playerController.IsGrounded)
-        {
-            if (playerController.CheckHang())
-            {
-                ChangeState(PlayerState.Hang);
-            }
-        }
     }
 
     private void HandleAttackRequest()
     {
-        if (CurState != PlayerState.Dead &&
-            CurState != PlayerState.Attack &&
-            CurState != PlayerState.WallRun &&
-            CurState != PlayerState.Hang)
+        if (CurState != PlayerState.Dead && CurState != PlayerState.Attack)
         {
             ChangeState(PlayerState.Attack);
         }
@@ -205,12 +190,6 @@ public class PlayerFSM : MonoBehaviour
             case PlayerState.Jump:
                 UpdateJumpState();
                 break;
-            case PlayerState.WallRun:
-                UpdateWallRunState();
-                break;
-            case PlayerState.Hang:
-                UpdateHangState();
-                break;
             case PlayerState.Zoom:
                 UpdateZoomState();
                 break;
@@ -222,7 +201,6 @@ public class PlayerFSM : MonoBehaviour
                 break;
         }
     }
-
 
     public void ChangeState(PlayerState newState)
     {
@@ -238,42 +216,31 @@ public class PlayerFSM : MonoBehaviour
         switch (state)
         {
             case PlayerState.Idle:
-                Debug.Log("Enter Idle");
                 break;
 
             case PlayerState.Move:
-                Debug.Log("Enter Move (Walk)");
                 break;
 
             case PlayerState.Run:
-                Debug.Log("Enter Run");
                 break;
 
             case PlayerState.Jump:
-                Debug.Log("Enter Jump");
                 isLanded = false;
                 playerController.Jump();
                 playerController.Player.ConsumeSp(jumpSpCost);
+
+                if (animator != null)
+                {
+                    animator.SetBool(JumpHash, true);
+                }
+
                 EventBus.OnPlayerJumped?.Invoke();
                 break;
 
-            case PlayerState.WallRun:
-                Debug.Log("Enter WallRun");
-                playerController.SetGravity(false);
-                break;
-
-            case PlayerState.Hang:
-                Debug.Log("Enter Hang");
-                playerController.StopMovement();
-                playerController.SetGravity(false);
-                break;
-
             case PlayerState.Zoom:
-                Debug.Log("Enter Zoom");
                 break;
 
             case PlayerState.Attack:
-                Debug.Log("Enter Attack");
                 attackTimer = 0f;
                 EventBus.OnWeaponFired?.Invoke();
                 break;
@@ -296,16 +263,7 @@ public class PlayerFSM : MonoBehaviour
     {
         switch (state)
         {
-            case PlayerState.WallRun:
-                playerController.SetGravity(true);
-                break;
-
-            case PlayerState.Hang:
-                playerController.SetGravity(true);
-                break;
-
             case PlayerState.Dead:
-                playerController.SetKinematic(false);
                 break;
         }
     }
@@ -358,48 +316,38 @@ public class PlayerFSM : MonoBehaviour
 
     private void UpdateJumpState()
     {
-        if (playerController.IsGrounded && !isLanded)
+        //if (playerController.IsGrounded)
+        //{
+        //    return;
+        //}
+        /*
+         *Jump 상태에 진입했지만 (Enter Jump), 물리 연산이 아직이라 IsGrounded는 여전히 true
+        따라서 IsGrounded 체크를 통과해 착지했다고 오해하고, 점프 애니메이션이 재생되기도 전에 (ChangeState(Idle)) Idle 상태로 바로 돌아가 버리는 것
+         */
+
+        if (!playerController.IsGrounded)
         {
             isLanded = true;
+            return;
+        }
+
+        if (playerController.IsGrounded && isLanded)
+        {
+            Debug.Log("착지 실행");
+            // 착지 로직 실행
             EventBus.OnPlayerLanded?.Invoke();
+            animator.SetBool(JumpHash, false);
 
             if (playerController.HasMoveInput())
             {
+                Debug.Log("Landed and Moving");
                 ChangeState(playerController.IsSprinting ? PlayerState.Run : PlayerState.Move);
             }
             else
             {
+                Debug.Log("Landed and Idle");
                 ChangeState(PlayerState.Idle);
             }
-        }
-
-        if (playerController.CanWallRun())
-        {
-            ChangeState(PlayerState.WallRun);
-        }
-    }
-
-    private void UpdateWallRunState()
-    {
-        if (!playerController.IsOnWall())
-        {
-            ChangeState(PlayerState.Jump);
-            return;
-        }
-
-        playerController.Player.ConsumeSp(wallRunSpCost * Time.deltaTime);
-
-        if (playerController.Player.curSp <= 0)
-        {
-            ChangeState(PlayerState.Jump);
-        }
-    }
-
-    private void UpdateHangState()
-    {
-        if (playerController.HasDownInput())
-        {
-            ChangeState(PlayerState.Jump);
         }
     }
 
@@ -445,6 +393,9 @@ public class PlayerFSM : MonoBehaviour
     {
         switch (CurState)
         {
+            case PlayerState.Idle:
+                playerController.Move(0f); 
+                break;
             case PlayerState.Move:
                 playerController.Move(playerController.walkSpeed);
                 break;
@@ -455,13 +406,61 @@ public class PlayerFSM : MonoBehaviour
 
             case PlayerState.Zoom:
                 playerController.Move(playerController.walkSpeed * playerController.zoomSpeedMultiplier);
-                break;
-
-            case PlayerState.WallRun:
-                playerController.WallRun();
-                break;
+                break;                          
         }
     }
+    #endregion
+
+    #region 애니메이션 제어
+    private void UpdateAnimator()
+    {
+        if (animator == null) return;
+
+        if (!animator.isActiveAndEnabled)
+        {
+            return;
+        }
+
+        float targetSpeed = CalculateAnimationSpeed();
+
+        animator.SetFloat(SpeedHash, targetSpeed, 0.1f, Time.deltaTime);
+
+        float currentSpeed = animator.GetFloat(SpeedHash);
+
+        if (currentSpeed < 0.001f) // 1.966e-06 보간때문에 0근처값에서 숫자가 계속 출렁거리는거 보기 싫어서 설정
+        {
+            animator.SetFloat(SpeedHash, 0f);
+        }
+
+        animator.SetBool(IsGroundedHash, playerController.IsGrounded);
+    }
+
+    private float CalculateAnimationSpeed()
+    {
+        if (!playerController.HasMoveInput())
+        {
+            return 0f;
+        }
+
+        switch (CurState)
+        {
+            case PlayerState.Idle:
+                return 0f;
+
+            case PlayerState.Move:
+                return 0.5f;
+
+            case PlayerState.Run:
+                return 1f;
+
+            case PlayerState.Zoom:
+                return 0.3f;
+
+            default:
+                return 0f;
+        }
+    }
+
     #endregion
 
     public void Die()
@@ -473,5 +472,27 @@ public class PlayerFSM : MonoBehaviour
     {
         playerController.Player.Respawn(position);
         ChangeState(PlayerState.Idle);
+    }
+
+    private void HandleSpRecovery()
+    {
+        if (playerController.Player.isDead)
+        {
+            return;
+        }
+
+        if (playerController.IsSprinting)
+        {
+            if (playerController.Player.curSp > 0)
+            {
+                playerController.Player.ConsumeSp(runSpCost * Time.deltaTime);
+            }
+            return;
+        }
+
+        if ( playerController.Player.curSp < playerController.Player.maxSp)
+        {
+            playerController.Player.RestoreSp(spRecoveryRate * Time.deltaTime);
+        }
     }
 }
