@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "StaminaRegenEffect", menuName = "Item/Effect/StaminaRegen")]
-public class StaminaRegenEffect : ItemEffect
+[CreateAssetMenu(fileName = "StaminaRegenItem", menuName = "Item/StaminaRegen")]
+public class StaminaRegenItem : ItemData
 {
     public float regenIncrease;
     public float duration;
 
-    public override IEnumerator ApplyEffect(PlayerController player)
+    public override IEnumerator Use(PlayerController player)
     {
         float originalRegenRate = player.spRecoveryRate;
 

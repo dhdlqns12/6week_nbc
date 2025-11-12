@@ -26,8 +26,7 @@ public class Item : MonoBehaviour, IObject
             PlayerController player = other.GetComponent<PlayerController>();
             if (player != null)
             {
-                StartCoroutine(itemData.itemEffect.ApplyEffect(player));
-
+                StartCoroutine(itemData.Use(player));
                 StartCoroutine(RespawnItem());
             }
         }

@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 192692f3b8413bd4d876920bfc858fc1, type: 3}
-  m_Name: Stamina Buff
+  m_Script: {fileID: 11500000, guid: 9b3a01a346088f343907d9f31585d5cf, type: 3}
+  m_Name: StaminaRegenItem
   m_EditorClassIdentifier: 
   itemName: "\uC2A4\uD0DC\uBBF8\uB098 \uD68C\uBCF5"
-  itemDescirption: "\uC2A4\uD0DC\uBBF8\uB098 \uD68C\uBCF5\uC18D\uB3C4\uAC00 \uBE68\uB77C\uC9D1\uB2C8\uB2E4."
-  value: 20
+  itemDescirption: "\uC2A4\uD0DC\uBBF8\uB098 \uD68C\uBCF5\uB7C9\uC774 '20'\uC99D\uAC00\uD569\uB2C8"
   itmeType: 0
-  itemEffect: {fileID: 11400000, guid: 3ca8465bcf9492345bdb0f7afd20153f, type: 2}
   respawnTime: 20
+  regenIncrease: 20
+  duration: 5

@@ -1326,11 +1326,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1119983734912466063, guid: 3005519d351bd5b49be551f091b0022f,
-        type: 3}
-      propertyPath: m_Convex
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3179501649537724960, guid: 3005519d351bd5b49be551f091b0022f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1381,20 +1376,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3191926961847773688, guid: 3005519d351bd5b49be551f091b0022f,
-        type: 3}
-      propertyPath: m_Convex
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5230364318268486957, guid: 3005519d351bd5b49be551f091b0022f,
         type: 3}
       propertyPath: m_Name
       value: Map
-      objectReference: {fileID: 0}
-    - target: {fileID: 5557122358445493107, guid: 3005519d351bd5b49be551f091b0022f,
-        type: 3}
-      propertyPath: m_Convex
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

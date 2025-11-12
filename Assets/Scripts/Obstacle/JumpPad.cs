@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BouncePad : MonoBehaviour, IObject
+public class JumpPad : MonoBehaviour, IObject
 {
     [Header("점프대 설정")]
     [SerializeField] private float bounceForce;
