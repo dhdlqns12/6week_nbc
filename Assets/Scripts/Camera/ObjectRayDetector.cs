@@ -49,9 +49,31 @@ public class ObjectRayDetector : MonoBehaviour
 
     void ShowObjectInfo(IObject obj)
     {
-        nameText.text = obj.ObjectName;
-        descriptionText.text = obj.Description;
-        uiPanel.SetActive(true);
+        try
+        {
+            if (nameText == null || descriptionText == null || uiPanel == null)
+            {
+                throw new System.NullReferenceException("UI 요소가 할당되지 않았습니다!");
+            }
+
+            if (string.IsNullOrEmpty(obj.ObjectName))
+            {
+                throw new System.ArgumentException("오브젝트 이름이 비어있습니다!");
+            }
+
+            nameText.text = obj.ObjectName;
+            descriptionText.text = obj.Description ?? "설명 없음";
+            uiPanel.SetActive(true);
+        }
+        catch (System.NullReferenceException e)
+        {
+            Debug.LogError($"UI 초기화 오류: {e.Message}");
+            enabled = false;
+        }
+        catch (System.ArgumentException e)
+        {
+            Debug.LogWarning($"오브젝트 데이터 오류: {e.Message}");
+        }
     }
 
     void CloseObjectInfo()

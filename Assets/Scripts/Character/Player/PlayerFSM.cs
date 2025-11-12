@@ -201,11 +201,27 @@ public class PlayerFSM : MonoBehaviour
 
     public void ChangeState(PlayerState newState)
     {
-        if (CurState == newState) return;
+        if (CurState == newState)
+        {
+            return;
+        }
 
-        ExitState(CurState);
-        CurState = newState;
-        EnterState(newState);
+        try
+        {
+            ExitState(CurState);
+            CurState = newState;
+            EnterState(newState);
+        }
+        catch (System.NullReferenceException e)
+        {
+            Debug.LogError($"상태 전환 실패 ({CurState} → {newState}): {e.Message}\n{e.StackTrace}");
+            CurState = PlayerState.Idle;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"({CurState} → {newState}): {e.Message}\n{e.StackTrace}");
+            CurState = PlayerState.Idle;
+        }
     }
 
     private void EnterState(PlayerState state)

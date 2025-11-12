@@ -264,7 +264,10 @@ public class PlayerController : MonoBehaviour
     #region 카메라 제어
     private void MouseLook()
     {
-        if (playerCamera == null) return;
+        if (playerCamera == null)
+        {
+            return;
+        }
 
         float mouseX = lookInput.x * mouseSensitivity;
         float mouseY = lookInput.y * mouseSensitivity;
@@ -278,7 +281,10 @@ public class PlayerController : MonoBehaviour
 
     private void Zoom()
     {
-        if (playerCamera == null) return;
+        if (playerCamera == null)
+        {
+            return;
+        }
 
         // IsZoomPressed로 판단 (FSM 상태 참조 안함)
         float targetFOV = IsZoomPressed ? zoomFov : normalFov;
