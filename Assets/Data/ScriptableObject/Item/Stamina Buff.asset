@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 192692f3b8413bd4d876920bfc858fc1, type: 3}
   m_Name: Stamina Buff
   m_EditorClassIdentifier: 
-  ItemImage: {fileID: 0}
-  itemPrefab: {fileID: 0}
-  itemName: 
-  itemDescirption: 
+  itemName: "\uC2A4\uD0DC\uBBF8\uB098 \uD68C\uBCF5"
+  itemDescirption: "\uC2A4\uD0DC\uBBF8\uB098 \uD68C\uBCF5\uC18D\uB3C4\uAC00 \uBE68\uB77C\uC9D1\uB2C8\uB2E4."
+  value: 20
   itmeType: 0
+  itemEffect: {fileID: 11400000, guid: 3ca8465bcf9492345bdb0f7afd20153f, type: 2}
+  respawnTime: 20

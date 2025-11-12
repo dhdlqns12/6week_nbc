@@ -15,14 +15,15 @@ public class PlayerController : MonoBehaviour
     public float runSpeed;
     public float zoomSpeedMultiplier;
     public float jumpForce;
+    public float spRecoveryRate;
 
     [Header("카메라 설정")]
     [SerializeField] private Camera playerCamera;
     public Camera PlayerCamera => playerCamera;
     [SerializeField] private float mouseSensitivity;
     [SerializeField] private float zoomFov;
+    [SerializeField] private float normalFov;
     private float xRotation;
-    public float normalFov;
 
     [Header("지면 체크")]
     [SerializeField] Transform groundCheck;

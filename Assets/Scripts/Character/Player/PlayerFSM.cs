@@ -37,9 +37,6 @@ public class PlayerFSM : MonoBehaviour
     private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
     private static readonly int JumpHash = Animator.StringToHash("Jump");
 
-    [Header("스태미나 회복")]
-    [SerializeField] private float spRecoveryRate;
-
     #region 유니티 callback메서드
     private void Awake()
     {
@@ -492,7 +489,7 @@ public class PlayerFSM : MonoBehaviour
 
         if ( playerController.Player.curSp < playerController.Player.maxSp)
         {
-            playerController.Player.RestoreSp(spRecoveryRate * Time.deltaTime);
+            playerController.Player.RestoreSp(playerController.spRecoveryRate * Time.deltaTime);
         }
     }
 }

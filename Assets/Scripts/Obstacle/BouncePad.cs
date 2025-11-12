@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 
-public class BouncePad : MonoBehaviour,IObject
+public class BouncePad : MonoBehaviour, IObject
 {
     [Header("점프대 설정")]
     [SerializeField] private float bounceForce;
-    [SerializeField] private Vector3 bounceDirection; 
-    [SerializeField] private bool usePlayerDirection;
+    [SerializeField] private Vector3 bounceDirection;
 
     [Header("오브젝트 정보")]
     [SerializeField] private string objectName = "점프대";
@@ -16,7 +15,7 @@ public class BouncePad : MonoBehaviour,IObject
     private Transform playerTransform;
 
     public string ObjectName => objectName;
-    public string Description => description; 
+    public string Description => description;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -38,15 +37,8 @@ public class BouncePad : MonoBehaviour,IObject
 
             Vector3 finalDirection;
 
-            if (usePlayerDirection)
-            {
-                finalDirection = playerTransform.forward + Vector3.up;
-                finalDirection = finalDirection.normalized;
-            }
-            else
-            {
-                finalDirection = bounceDirection.normalized;
-            }
+            finalDirection = playerTransform.forward + Vector3.up;
+            finalDirection = finalDirection.normalized;
 
             playerRb.AddForce(finalDirection * bounceForce, ForceMode.Impulse);
 
