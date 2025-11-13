@@ -1,6 +1,6 @@
 # 스파르타 던전 탐험
 
-## 유니티 입문 개인과제
+## 유니티 심화 개인과제
 <img width="1000" height="600" alt="Image" src="https://github.com/user-attachments/assets/d93b2666-d967-4f47-9072-9ca767124d9c" />
 
 ## 1. 프로젝트 소개
