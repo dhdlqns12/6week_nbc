@@ -95,13 +95,9 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Sprint.canceled += OnSprint;
 
         inputActions.Player.Jump.performed += OnJump;
-        inputActions.Player.Attack.performed += OnAttack;
-        inputActions.Player.Interact.performed += OnInteract;
 
         inputActions.Player.Zoom.performed += OnZoom;
         inputActions.Player.Zoom.canceled += OnZoom;
-
-        inputActions.Player.Inventory.performed += OnInventory;
     }
 
     private void UnsubscribeEvents()
@@ -116,13 +112,9 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Sprint.canceled -= OnSprint;
 
         inputActions.Player.Jump.performed -= OnJump;
-        inputActions.Player.Attack.performed -= OnAttack;
-        inputActions.Player.Interact.performed -= OnInteract;
 
         inputActions.Player.Zoom.performed -= OnZoom;
         inputActions.Player.Zoom.canceled -= OnZoom;
-
-        inputActions.Player.Inventory.performed -= OnInventory;
     }
     #endregion
 
@@ -159,26 +151,6 @@ public class PlayerController : MonoBehaviour
         EventBus.OnPlayerJumpRequested?.Invoke();
     }
 
-    private void OnAttack(InputAction.CallbackContext context)
-    {
-        if (player.isDead || !context.performed)
-        {
-            return;
-        }
-
-        EventBus.OnPlayerAttackRequested?.Invoke();
-    }
-
-    private void OnInteract(InputAction.CallbackContext context)
-    {
-        if (player.isDead || !context.performed)
-        {
-            return;
-        }
-
-        EventBus.OnPlayerInteractRequested?.Invoke();
-    }
-
     private void OnZoom(InputAction.CallbackContext context)
     {
         if (player.isDead)
@@ -190,22 +162,20 @@ public class PlayerController : MonoBehaviour
 
         EventBus.OnPlayerZoomRequested?.Invoke(true);
     }
-
-    private void OnInventory(InputAction.CallbackContext context)
-    {
-        if (player.isDead || !context.performed)
-        {
-            return;
-        }
-
-        EventBus.OnInventoryRequested?.Invoke();
-    }
     #endregion
 
+
     /// <summary>
-    /// FSM이 호출
+    /// FSM이 호출하는 이동 API들: Move/Jump/StopMovement
+    /// 이들 메서드는 Rigidbody를 직접 제어하여 물리 기반 움직임을 수행한다.
     /// </summary>
     #region 이동제어
+    /// <summary>
+    /// 이동 입력값과 속도를 받아 Rigidbody velocity를 설정한다.
+    /// - 방향은 transform.forward/right 기준으로 계산
+    /// - y 성분은 기존 rb.velocity.y를 유지(중력/점프 영향 유지)
+    /// </summary>
+    /// <param name="speed">현재 상태에 맞는 이동 속도</param>
     public void Move(float speed)
     {
         Vector3 dir = transform.forward * moveInput.y + transform.right * moveInput.x;
@@ -221,6 +191,9 @@ public class PlayerController : MonoBehaviour
         rb.velocity = dir;
     }
 
+    /// <summary>
+    /// 점프 처리: 수직 속도 초기화 후 Impulse로 힘을 가함.
+    /// </summary>
     public void Jump()
     {
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
@@ -228,23 +201,16 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
-
+    /// <summary>
+    /// 수평 이동을 정지시킨다(수직 속도는 유지).
+    /// FSM이 Dead 상태 진입 시 호출 등에서 사용.
+    /// </summary>
     public void StopMovement()
     {
         Vector3 velocity = rb.velocity;
         velocity.x = 0f;
         velocity.z = 0f;
         rb.velocity = velocity;
-    }
-
-    public void SetGravity(bool enabled)
-    {
-        rb.useGravity = enabled;
-    }
-
-    public void SetKinematic(bool kinematic)
-    {
-        rb.isKinematic = kinematic;
     }
     #endregion
 
@@ -289,22 +255,6 @@ public class PlayerController : MonoBehaviour
         // IsZoomPressed로 판단 (FSM 상태 참조 안함)
         float targetFOV = IsZoomPressed ? zoomFov : normalFov;
         playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, Time.deltaTime * 10f);
-    }
-    #endregion
-
-    #region 디버그용
-    private void OnDrawGizmos()
-    {
-        if (groundCheck != null)
-        {
-            Gizmos.color = IsGrounded ? Color.green : Color.red;
-            Gizmos.DrawWireSphere(groundCheck.position, groundLayer);
-        }
-
-        Gizmos.color = Color.blue;
-
-        Vector3 hangOrigin = transform.position + Vector3.up * 1.5f + transform.forward * 0.3f;
-        Gizmos.color = Color.yellow;
     }
     #endregion
 }

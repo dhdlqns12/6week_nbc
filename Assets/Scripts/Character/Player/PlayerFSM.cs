@@ -81,8 +81,6 @@ public class PlayerFSM : MonoBehaviour
     private void SubscribeEvents()
     {
         EventBus.OnPlayerJumpRequested += HandleJumpRequest;
-        EventBus.OnPlayerAttackRequested += HandleAttackRequest;
-        EventBus.OnPlayerInteractRequested += HandleInteractRequest;
         EventBus.OnPlayerSprintRequested += HandleSprintToggle;
         EventBus.OnPlayerZoomRequested += HandleZoomToggle;
     }
@@ -90,8 +88,6 @@ public class PlayerFSM : MonoBehaviour
     private void UnsubscribeEvents()
     {
         EventBus.OnPlayerJumpRequested -= HandleJumpRequest;
-        EventBus.OnPlayerAttackRequested -= HandleAttackRequest;
-        EventBus.OnPlayerInteractRequested -= HandleInteractRequest;
         EventBus.OnPlayerSprintRequested -= HandleSprintToggle;
         EventBus.OnPlayerZoomRequested -= HandleZoomToggle;
     }
@@ -112,22 +108,6 @@ public class PlayerFSM : MonoBehaviour
             {
                 ChangeState(PlayerState.Jump);
             }
-        }
-    }
-
-    private void HandleAttackRequest()
-    {
-        if (CurState != PlayerState.Dead && CurState != PlayerState.Attack)
-        {
-            ChangeState(PlayerState.Attack);
-        }
-    }
-
-    private void HandleInteractRequest()
-    {
-        if (CurState == PlayerState.Idle || CurState == PlayerState.Move)
-        {
-            ChangeState(PlayerState.Interact);
         }
     }
 
@@ -168,10 +148,35 @@ public class PlayerFSM : MonoBehaviour
             }
         }
     }
+
+    private void HandleSpRecovery()
+    {
+        if (playerController.Player.isDead)
+        {
+            return;
+        }
+
+        if (playerController.IsSprinting)
+        {
+            if (playerController.Player.curSp > 0)
+            {
+                playerController.Player.ConsumeSp(runSpCost * Time.deltaTime);
+            }
+            return;
+        }
+
+        if (playerController.Player.curSp < playerController.Player.maxSp)
+        {
+            playerController.Player.RestoreSp(playerController.spRecoveryRate * Time.deltaTime);
+        }
+    }
     #endregion
 
     #region FSM Core
-    private void UpdateState()
+    /// <summary>
+    /// 현재 상태에 따라 상태별 업데이트 메서드 호출
+    /// </summary>
+    private void UpdateState() 
     {
         switch (CurState)
         {
@@ -190,16 +195,13 @@ public class PlayerFSM : MonoBehaviour
             case PlayerState.Zoom:
                 UpdateZoomState();
                 break;
-            case PlayerState.Attack:
-                UpdateAttackState();
-                break;
-            case PlayerState.Interact:
-                UpdateInteractState();
-                break;
         }
     }
 
-    public void ChangeState(PlayerState newState)
+    /// <summary>
+    /// 상태 변경 처리
+    /// </summary>
+    public void ChangeState(PlayerState newState) 
     {
         if (CurState == newState)
         {
@@ -224,7 +226,10 @@ public class PlayerFSM : MonoBehaviour
         }
     }
 
-    private void EnterState(PlayerState state)
+    /// <summary>
+    /// 상태 진입 시 처리
+    /// </summary>
+    private void EnterState(PlayerState state) 
     {
         switch (state)
         {
@@ -253,25 +258,17 @@ public class PlayerFSM : MonoBehaviour
             case PlayerState.Zoom:
                 break;
 
-            case PlayerState.Attack:
-                attackTimer = 0f;
-                EventBus.OnWeaponFired?.Invoke();
-                break;
-
-            case PlayerState.Interact:
-                Debug.Log("Enter Interact");
-                interactTimer = 0f;
-                break;
-
             case PlayerState.Dead:
                 Debug.Log("Enter Dead");
                 playerController.StopMovement();
-                playerController.SetKinematic(true);
                 EventBus.OnPlayerDead?.Invoke();
                 break;
         }
     }
 
+    /// <summary>
+    /// 상태 종료 시 처리
+    /// </summary>
     private void ExitState(PlayerState state)
     {
         switch (state)
@@ -329,15 +326,6 @@ public class PlayerFSM : MonoBehaviour
 
     private void UpdateJumpState()
     {
-        //if (playerController.IsGrounded)
-        //{
-        //    return;
-        //}
-        /*
-         *Jump 상태에 진입했지만 (Enter Jump), 물리 연산이 아직이라 IsGrounded는 여전히 true
-        따라서 IsGrounded 체크를 통과해 착지했다고 오해하고, 점프 애니메이션이 재생되기도 전에 (ChangeState(Idle)) Idle 상태로 바로 돌아가 버리는 것
-         */
-
         if (!playerController.IsGrounded)
         {
             isLanded = true;
@@ -369,34 +357,6 @@ public class PlayerFSM : MonoBehaviour
         if (!playerController.IsZoomPressed)
         {
             ChangeState(playerController.HasMoveInput() ? PlayerState.Move : PlayerState.Idle);
-        }
-    }
-
-    private void UpdateAttackState()
-    {
-        attackTimer += Time.deltaTime;
-
-        if (attackTimer >= attackDuration)
-        {
-            if (playerController.HasMoveInput())
-            {
-                ChangeState(playerController.IsSprinting ? PlayerState.Run : PlayerState.Move);
-            }
-            else
-            {
-                ChangeState(PlayerState.Idle);
-            }
-        }
-    }
-
-    private void UpdateInteractState()
-    {
-        interactTimer += Time.deltaTime;
-
-        if (interactTimer >= interactDuration)
-        {
-            EventBus.OnInteractionCompleted?.Invoke();
-            ChangeState(PlayerState.Idle);
         }
     }
     #endregion
@@ -485,27 +445,5 @@ public class PlayerFSM : MonoBehaviour
     {
         playerController.Player.Respawn(position);
         ChangeState(PlayerState.Idle);
-    }
-
-    private void HandleSpRecovery()
-    {
-        if (playerController.Player.isDead)
-        {
-            return;
-        }
-
-        if (playerController.IsSprinting)
-        {
-            if (playerController.Player.curSp > 0)
-            {
-                playerController.Player.ConsumeSp(runSpCost * Time.deltaTime);
-            }
-            return;
-        }
-
-        if ( playerController.Player.curSp < playerController.Player.maxSp)
-        {
-            playerController.Player.RestoreSp(playerController.spRecoveryRate * Time.deltaTime);
-        }
     }
 }

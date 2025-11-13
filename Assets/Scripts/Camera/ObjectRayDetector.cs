@@ -85,6 +85,7 @@ public class ObjectRayDetector : MonoBehaviour
         }
     }
 
+    #region 디버그용
     void OnDrawGizmos()
     {
         if (playerCamera != null)
@@ -93,4 +94,5 @@ public class ObjectRayDetector : MonoBehaviour
             Gizmos.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * rayDistance);
         }
     }
+    #endregion
 }
