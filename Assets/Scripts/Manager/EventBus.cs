@@ -22,5 +22,4 @@ public static class EventBus  // 1:1관계인데도 무분별하게 이벤트 �
     /// </summary>
     //처럼 작성 필요
     public static Action OnPlayerDead;
-
 }
